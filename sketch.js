@@ -1,11 +1,11 @@
-// sketch.js - Composición geométrica integrada inspirada en constructivismo (Malevich, Tatlin) y cubismo (Picasso, Braque), con pelota-cara interactiva
-
 let mic; // Micrófono para capturar voz
 let fft; // Análisis de frecuencia
 let bgMusic; // Música de fondo
 let musicPaused = false; // Estado de pausa de la música
 let mode = 0; // Modo de visualización (0: constructivista, 1: cubista)
 let waveOffset = 0; // Offset para la ola en la tribuna
+let micReady = false; // Flag para saber si el micrófono está listo
+let audioStarted = false; // Flag para saber si el audio ha sido iniciado por el usuario
 
 function preload() {
   bgMusic = loadSound('we will rock you instrumental.mp3'); // Cargar música de fondo
@@ -14,23 +14,48 @@ function preload() {
 function setup() {
   createCanvas(windowWidth, windowHeight); // Canvas dinámico al tamaño de la ventana
 
-  // Configurar micrófono y FFT
-  mic = new p5.AudioIn();
-  mic.start();
-  mic.amp(0.1);
-  fft = new p5.FFT();
-  fft.setInput(mic);
-
-  // Configurar música
-  bgMusic.setVolume(0.2);
-  bgMusic.loop();
+  // No iniciar micrófono ni música aquí, esperar a gesto del usuario
+  // mic = new p5.AudioIn(); // Movido a startAudio()
+  // mic.start(...); // Movido a startAudio()
+  // bgMusic.setVolume(0.2); // Movido a startAudio()
+  // bgMusic.loop(); // Movido a startAudio()
 
   noStroke(); // Sin bordes para estilo abstracto
   colorMode(HSB, 360, 100, 100); // Modo de color HSB para variaciones
 }
 
+function startAudio() {
+  if (audioStarted) return; // Evitar iniciar múltiples veces
+  audioStarted = true;
+
+  // Configurar micrófono y FFT con callback para asegurar que esté listo
+  mic = new p5.AudioIn();
+  mic.start(() => {
+    console.log('Micrófono listo');
+    micReady = true; // Marca como listo
+    fft = new p5.FFT();
+    fft.setInput(mic);
+  }, (error) => {
+    console.error('Error con micrófono:', error);
+  });
+  mic.amp(0.1);
+
+  // Configurar música
+  bgMusic.setVolume(0.2);
+  bgMusic.loop();
+}
+
 function draw() {
   background(120, 70, 30); // Fondo verde estilo césped
+
+  if (!audioStarted) {
+    // Mostrar mensaje para iniciar audio
+    fill(0, 0, 100);
+    textAlign(CENTER);
+    textSize(24);
+    text("Haz clic o presiona una tecla para iniciar el audio", width / 2, height / 2);
+    return; // No dibujar el resto hasta que el audio esté iniciado
+  }
 
   // Patrón de césped: Figura 1 - Elipses (círculos) para simular hierba, inspirado en formas orgánicas del constructivismo
   for (let x = 0; x < width; x += 20) {
@@ -49,18 +74,22 @@ function draw() {
   rect(width / 2 - 350, height / 2 - 250, 700, 500);
   noStroke();
 
-  // Análisis de audio para ola
-  let spectrum = fft.analyze();
-  let vol = mic.getLevel();
+  // Análisis de audio para ola - Solo si mic está listo
+  let spectrum = [];
+  let vol = 0;
   let lowFreqAvg = 0;
-  for (let i = 0; i < 20; i++) {
-    lowFreqAvg += spectrum[i];
-  }
-  lowFreqAvg /= 20;
-  if (lowFreqAvg > 50) {
-    waveOffset += 0.1;
-  } else {
-    waveOffset *= 0.95;
+  if (micReady && fft) {
+    spectrum = fft.analyze();
+    vol = mic.getLevel();
+    for (let i = 0; i < 20; i++) {
+      lowFreqAvg += spectrum[i];
+    }
+    lowFreqAvg /= 20;
+    if (lowFreqAvg > 50) {
+      waveOffset += 0.1;
+    } else {
+      waveOffset *= 0.95;
+    }
   }
 
   // Tribunas: Figura 3 - Elipses (círculos) para espectadores, simulando multitudes en composiciones constructivistas
@@ -96,6 +125,20 @@ function draw() {
     fill(0, 0, 80);
     ellipse(x, y, 18, 18);
   }
+
+  // Nueva Figura 10: Líneas diagonales dinámicas para movimiento de la multitud, inspirado en diagonales constructivistas
+  stroke(0, 0, 100); // Blanco para contraste
+  strokeWeight(map(vol, 0, 1, 1, 5)); // Grosor basado en volumen
+  noFill();
+  for (let i = 0; i < 10; i++) {
+    let startX = width / 2 - 300 + i * 60;
+    let startY = height / 2 - 200;
+    let endX = width / 2 + 300 - i * 60;
+    let endY = height / 2 + 200;
+    let offset = sin(waveOffset + i * 0.5) * map(lowFreqAvg, 0, 255, 0, 50); // Animación con audio
+    line(startX + offset, startY, endX + offset, endY);
+  }
+  noStroke(); // Reset para no afectar otras figuras
 
   let scaleFactor = map(vol, 0, 1, 0.5, 2);
   let rotAngle = map(mouseX, 0, width, 0, TWO_PI);
@@ -165,6 +208,10 @@ function draw() {
 }
 
 function keyPressed() {
+  if (!audioStarted) {
+    startAudio();
+    return;
+  }
   if (key === 'm' || key === 'M') {
     mode = (mode + 1) % 2;
   }
@@ -176,6 +223,12 @@ function keyPressed() {
       bgMusic.pause();
       musicPaused = true;
     }
+  }
+}
+
+function mousePressed() {
+  if (!audioStarted) {
+    startAudio();
   }
 }
 
