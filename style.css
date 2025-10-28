@@ -1,0 +1,14 @@
+/* Estilos para que el canvas ocupe toda la pantalla sin márgenes */
+html, body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden; /* Evitar barras de scroll */
+  /* El color de fondo del HTML ahora es el base,
+     p5.js dibujará encima con transparencia. */
+  background-color: #F5EFE6; 
+}
+
+/* El canvas que p5.js crea */
+canvas {
+  display: block;
+}
