@@ -52,26 +52,29 @@ function draw() {
     // Mostrar mensaje para iniciar audio
     fill(0, 0, 100);
     textAlign(CENTER);
-    textSize(24);
+    textSize(min(width, height) / 20); // Tamaño relativo para móviles
     text("Haz clic o presiona una tecla para iniciar el audio", width / 2, height / 2);
     return; // No dibujar el resto hasta que el audio esté iniciado
   }
 
+  // Factor de escala para responsividad (basado en el tamaño mínimo de la pantalla)
+  let scaleFactorResponsive = min(width, height) / 800; // Asume 800 como base; ajusta si es necesario
+
   // Patrón de césped: Figura 1 - Elipses (círculos) para simular hierba, inspirado en formas orgánicas del constructivismo
-  for (let x = 0; x < width; x += 20) {
-    for (let y = 0; y < height; y += 20) {
-      let size = random(3, 8);
+  for (let x = 0; x < width; x += 20 * scaleFactorResponsive) {
+    for (let y = 0; y < height; y += 20 * scaleFactorResponsive) {
+      let size = random(3, 8) * scaleFactorResponsive;
       let hue = 120 + random(-10, 10);
       fill(hue, 60, 35);
-      ellipse(x + random(-5, 5), y + random(-5, 5), size, size);
+      ellipse(x + random(-5, 5) * scaleFactorResponsive, y + random(-5, 5) * scaleFactorResponsive, size, size);
     }
   }
 
   // Marco de la cancha: Figura 2 - Rectángulo (sin relleno) para delineación, como líneas geométricas en obras de Malevich
   stroke(0, 0, 100); // Blanco
-  strokeWeight(8);
+  strokeWeight(8 * scaleFactorResponsive); // Grosor relativo
   noFill();
-  rect(width / 2 - 350, height / 2 - 250, 700, 500);
+  rect(width * 0.1, height * 0.2, width * 0.8, height * 0.6); // Proporcional: 10% margen izquierdo, 20% superior, 80% ancho, 60% alto
   noStroke();
 
   // Análisis de audio para ola - Solo si mic está listo
@@ -95,52 +98,53 @@ function draw() {
   // Tribunas: Figura 3 - Elipses (círculos) para espectadores, simulando multitudes en composiciones constructivistas
   let frontRows = 5;
   let backRows = 8;
-  let spacing = 40;
-  let depthOffset = 30;
+  let spacing = 40 * scaleFactorResponsive; // Espaciado relativo
+  let depthOffset = 30 * scaleFactorResponsive;
+  let marginInside = 50 * scaleFactorResponsive; // Margen interno para centrar adentro del rectángulo
 
-  // Tribuna azul (izquierda)
+  // Tribuna azul (izquierda) - Centrada adentro del rectángulo
   for (let r = 0; r < frontRows; r++) {
-    let y = height / 2 - (frontRows / 2) * spacing + r * spacing;
-    let x = width / 2 - 250 + sin(waveOffset - r * 0.3) * 15;
+    let y = height * 0.2 + (height * 0.6 / frontRows) * r; // Distribuido en el alto de la cancha
+    let x = width * 0.1 + marginInside + sin(waveOffset - r * 0.3) * 15 * scaleFactorResponsive; // Margen interno + animación
     fill(240, 100, 100);
-    ellipse(x, y, 20, 20);
+    ellipse(x, y, 20 * scaleFactorResponsive, 20 * scaleFactorResponsive);
   }
   for (let r = 0; r < backRows; r++) {
-    let y = height / 2 - (backRows / 2) * spacing + r * spacing;
-    let x = width / 2 - 250 - depthOffset + sin(waveOffset - r * 0.3) * 10;
+    let y = height * 0.2 + (height * 0.6 / backRows) * r;
+    let x = width * 0.1 + marginInside - depthOffset + sin(waveOffset - r * 0.3) * 10 * scaleFactorResponsive; // Ajustado para profundidad
     fill(240, 100, 80);
-    ellipse(x, y, 18, 18);
+    ellipse(x, y, 18 * scaleFactorResponsive, 18 * scaleFactorResponsive);
   }
 
-  // Tribuna blanca (derecha)
+  // Tribuna blanca (derecha) - Centrada adentro del rectángulo
   for (let r = 0; r < frontRows; r++) {
-    let y = height / 2 - (frontRows / 2) * spacing + r * spacing;
-    let x = width / 2 + 250 - sin(waveOffset - r * 0.3) * 15;
+    let y = height * 0.2 + (height * 0.6 / frontRows) * r;
+    let x = width * 0.9 - marginInside - sin(waveOffset - r * 0.3) * 15 * scaleFactorResponsive; // Margen interno + animación
     fill(0, 0, 100);
-    ellipse(x, y, 20, 20);
+    ellipse(x, y, 20 * scaleFactorResponsive, 20 * scaleFactorResponsive);
   }
   for (let r = 0; r < backRows; r++) {
-    let y = height / 2 - (backRows / 2) * spacing + r * spacing;
-    let x = width / 2 + 250 + depthOffset - sin(waveOffset - r * 0.3) * 10;
+    let y = height * 0.2 + (height * 0.6 / backRows) * r;
+    let x = width * 0.9 - marginInside + depthOffset - sin(waveOffset - r * 0.3) * 10 * scaleFactorResponsive; // Ajustado para profundidad
     fill(0, 0, 80);
-    ellipse(x, y, 18, 18);
+    ellipse(x, y, 18 * scaleFactorResponsive, 18 * scaleFactorResponsive);
   }
 
   // Nueva Figura 10: Líneas diagonales dinámicas para movimiento de la multitud, inspirado en diagonales constructivistas
   stroke(0, 0, 100); // Blanco para contraste
-  strokeWeight(map(vol, 0, 1, 1, 5)); // Grosor basado en volumen
+  strokeWeight(map(vol, 0, 1, 1, 5) * scaleFactorResponsive); // Grosor relativo
   noFill();
   for (let i = 0; i < 10; i++) {
-    let startX = width / 2 - 300 + i * 60;
-    let startY = height / 2 - 200;
-    let endX = width / 2 + 300 - i * 60;
-    let endY = height / 2 + 200;
-    let offset = sin(waveOffset + i * 0.5) * map(lowFreqAvg, 0, 255, 0, 50); // Animación con audio
+    let startX = width * 0.1 + i * (width * 0.8 / 10); // Distribuido en el ancho de la cancha
+    let startY = height * 0.2;
+    let endX = width * 0.9 - i * (width * 0.8 / 10);
+    let endY = height * 0.8;
+    let offset = sin(waveOffset + i * 0.5) * map(lowFreqAvg, 0, 255, 0, 50) * scaleFactorResponsive; // Animación relativa
     line(startX + offset, startY, endX + offset, endY);
   }
   noStroke(); // Reset para no afectar otras figuras
 
-  let scaleFactor = map(vol, 0, 1, 0.5, 2);
+  let scaleFactorAudio = map(vol, 0, 1, 0.5, 2); // Escala por audio (mantengo esto separado)
   let rotAngle = map(mouseX, 0, width, 0, TWO_PI);
   let mouthOpen = map(lowFreqAvg, 0, 255, 5, 60);
 
@@ -148,38 +152,38 @@ function draw() {
     push();
     translate(width / 2, height / 2);
     rotate(rotAngle);
-    scale(scaleFactor);
+    scale(scaleFactorAudio * scaleFactorResponsive); // Combina escala de audio y responsiva
 
     // Figura 4: Rectángulos constructivistas para bases industriales, inspirado en Tatlin y formas abstractas
     for (let i = 0; i < spectrum.length; i += 50) {
       let amp = spectrum[i] / 255;
       fill(map(i, 0, spectrum.length, 0, 360), 80, 80);
-      rect(i - spectrum.length / 2, -amp * 100, 20, amp * 200);
+      rect(i - spectrum.length / 2, -amp * 100 * scaleFactorResponsive, 20 * scaleFactorResponsive, amp * 200 * scaleFactorResponsive);
     }
 
     // Figura 5: Elipses para ondas curvas, como elementos dinámicos en constructivismo
     for (let i = 0; i < 10; i++) {
-      let x = cos(i * TWO_PI / 10) * 200 * scaleFactor;
-      let y = sin(i * TWO_PI / 10) * 200 * scaleFactor;
+      let x = cos(i * TWO_PI / 10) * 200 * scaleFactorResponsive;
+      let y = sin(i * TWO_PI / 10) * 200 * scaleFactorResponsive;
       fill(120 + i * 20, 100, 100);
-      ellipse(x, y, vol * 100, vol * 100);
+      ellipse(x, y, vol * 100 * scaleFactorResponsive, vol * 100 * scaleFactorResponsive);
     }
 
     // Figura 6: Elipse para pelota-cara, con arcos para boca, como forma humana simplificada en constructivismo
-    let faceSize = 150 + vol * 200;
+    let faceSize = (150 + vol * 200) * scaleFactorResponsive;
     fill(60, 100, 100);
     ellipse(0, 0, faceSize, faceSize); // Cabeza
     fill(0, 0, 0);
-    ellipse(-20, -20, 10, 10); // Ojo izquierdo
-    ellipse(20, -20, 10, 10);  // Ojo derecho
-    arc(0, 20, 40, mouthOpen, 0, PI); // Boca (arco)
+    ellipse(-20 * scaleFactorResponsive, -20 * scaleFactorResponsive, 10 * scaleFactorResponsive, 10 * scaleFactorResponsive); // Ojo izquierdo
+    ellipse(20 * scaleFactorResponsive, -20 * scaleFactorResponsive, 10 * scaleFactorResponsive, 10 * scaleFactorResponsive);  // Ojo derecho
+    arc(0, 20 * scaleFactorResponsive, 40 * scaleFactorResponsive, mouthOpen * scaleFactorResponsive, 0, PI); // Boca (arco)
     pop();
   } else if (mode === 1) { // Modo cubista
     for (let i = 0; i < spectrum.length; i += 10) {
       let amp = spectrum[i] / 255;
       let x = random(width);
       let y = random(height);
-      let size = amp * 50;
+      let size = amp * 50 * scaleFactorResponsive;
 
       // Figura 7: Rectángulos cubistas como partículas, inspirado en descomposición de Picasso
       fill(map(i, 0, spectrum.length, 0, 360), 80, 80);
@@ -193,18 +197,18 @@ function draw() {
       fill(60, 100, 100);
       ellipse(x, y, size * 2);
       fill(0, 0, 0);
-      ellipse(x - 5, y - 5, 3, 3);
-      ellipse(x + 5, y - 5, 3, 3);
-      let miniMouth = map(lowFreqAvg, 0, 255, 1, 15);
-      arc(x, y + 5, 10, miniMouth, 0, PI);
+      ellipse(x - 5 * scaleFactorResponsive, y - 5 * scaleFactorResponsive, 3 * scaleFactorResponsive, 3 * scaleFactorResponsive);
+      ellipse(x + 5 * scaleFactorResponsive, y - 5 * scaleFactorResponsive, 3 * scaleFactorResponsive, 3 * scaleFactorResponsive);
+      let miniMouth = map(lowFreqAvg, 0, 255, 1, 15) * scaleFactorResponsive;
+      arc(x, y + 5 * scaleFactorResponsive, 10 * scaleFactorResponsive, miniMouth, 0, PI);
     }
   }
 
   // Texto de instrucciones
   fill(0, 0, 100);
   textAlign(CENTER);
-  textSize(16);
-  text("Habla fuerte para que abra bien la boca. Mouse para rotar. Presiona 'M' para cambiar modo. 'P' para pausar/reanudar música.", width / 2, height - 30);
+  textSize(min(width, height) / 30); // Tamaño relativo
+  text("Habla fuerte para que abra bien la boca. Mouse para rotar. Presiona 'M' para cambiar modo. 'P' para pausar/reanudar música.", width / 2, height - height * 0.05); // Posición relativa al fondo
 }
 
 function keyPressed() {
